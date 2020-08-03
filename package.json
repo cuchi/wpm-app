@@ -3,7 +3,11 @@
   "version": "0.1.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "start": "next"
+  },
   "dependencies": {
+    "date-fns": "^2.15.0",
     "next": "^9.4.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1"
