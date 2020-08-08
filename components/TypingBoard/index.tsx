@@ -1,6 +1,7 @@
-import { Component } from 'react'
+import { Component, SyntheticEvent } from 'react'
 import { differenceInSeconds, addSeconds } from 'date-fns'
-import TextDiff from './TextDiff'
+import TextDiff from '../TextDiff'
+import { diffChars } from 'diff'
 
 const wordSize = 5
 
@@ -35,6 +36,15 @@ export default class TypingBoard extends Component<Props, State> {
         }
     }
 
+    componentWillUnmount() {
+        if (this.timer) {
+            clearTimeout(this.timer)
+        }
+        if (this.tick) {
+            clearInterval(this.tick)
+        }
+    }
+
     private isValidWpm(wordsPerMinute: number) {
         return wordsPerMinute && Number.isFinite(wordsPerMinute)
     }
@@ -42,6 +52,7 @@ export default class TypingBoard extends Component<Props, State> {
     private setInput(input: string) {
         if (!this.state.firstStroke && this.props.timerInSecs) {
             this.initializeTimer(this.props.timerInSecs)
+            this.initializeTick()
         }
 
         const firstStroke = this.state.firstStroke ?? new Date()
@@ -62,7 +73,9 @@ export default class TypingBoard extends Component<Props, State> {
                 clearInterval(this.tick)
             }
         }, secs * 1000)
+    }
 
+    private initializeTick() {
         this.tick = setInterval(() => {
             if (!this.state.firstStroke || !this.props.timerInSecs) {
                 return
@@ -75,34 +88,55 @@ export default class TypingBoard extends Component<Props, State> {
         }, 500)
     }
 
-    componentWillUnmount() {
-        if (this.timer) {
-            clearTimeout(this.timer)
-        }
-        if (this.tick) {
-            clearInterval(this.tick)
+    private onPaste(event: SyntheticEvent) {
+        event.preventDefault()
+    }
+
+    private getAccuracy() {
+        const changes = diffChars(this.props.sourceText, this.state.input)
+        const correctChars = changes
+            .reduce(
+                (correctChars, change) => {
+                    const count = change.count ?? 0
+                    if (change.added) {
+                        return correctChars - count
+                    }
+                    if (change.removed) {
+                        return correctChars
+                    }
+                    return correctChars + count
+                }, 
+                0
+            )
+        return {
+            changes,
+            accuracy: Math.max(correctChars, 0)
+                / this.props.sourceText.length * 100
         }
     }
 
     render() {
         const { input, wordsPerMinute, remainingSeconds } = this.state
+        const { changes, accuracy } = this.getAccuracy()
 
         return (
             <div>
-                <TextDiff sourceText={this.props.sourceText} inputText={input}/>
-                <input
-                    type="text"
+                <TextDiff sourceText={this.props.sourceText} changes={changes}/>
+                <textarea
                     value={input}
                     onChange={event => this.setInput(event.target.value)}
                     disabled={!this.state.isRunning}
+                    onPaste={this.onPaste.bind(this)}
+                    onDrop={this.onPaste.bind(this)}
                 />
                 <p>
-                    {/* {timerInSecs && <span></span>} */}
                     WPM: {this.isValidWpm(wordsPerMinute)
                         ? wordsPerMinute
                         : '--'}
                     <br/>
                     Remaining time: {remainingSeconds}
+                    <br/>
+                    Accuracy: {accuracy}
                 </p>
             </div>
         )
