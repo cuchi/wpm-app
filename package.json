@@ -7,12 +7,15 @@
     "start": "next"
   },
   "dependencies": {
+    "@nivo/line": "^0.62.0",
     "@types/diff": "^4.0.2",
     "date-fns": "^2.15.0",
     "diff": "^4.0.2",
     "next": "^9.4.4",
+    "purecss": "^2.0.3",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react-dom": "^16.13.1",
+    "sass": "^1.26.10"
   },
   "devDependencies": {
     "@types/node": "^14.0.26",

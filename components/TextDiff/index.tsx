@@ -1,7 +1,6 @@
 import { Change } from 'diff'
 
-type Props = {
-    sourceText: string,
+type TextDiffProps = {
     changes: Change[]
 }
 
@@ -12,15 +11,14 @@ function displayChanges(changes: Change[]) {
             color = 'red'
         }
         if (change.removed) {
-            return
+            color = 'gray'
         }
         return <span style={{ color }}>{change.value}</span>
     })
 }
 
-export default function TextDiff({ sourceText, changes }: Props) {
+export default function TextDiff({ changes }: TextDiffProps) {
     return <>
-        <p>{sourceText}</p>
         <p>{displayChanges(changes)}</p>
     </>
 }

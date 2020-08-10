@@ -1,42 +1,51 @@
-import { Component, SyntheticEvent } from 'react'
-import { differenceInSeconds, addSeconds } from 'date-fns'
+import { Component, SyntheticEvent, ChangeEvent } from 'react'
+import { differenceInSeconds, addSeconds, differenceInMilliseconds } from 'date-fns'
 import TextDiff from '../TextDiff'
-import { diffChars } from 'diff'
+import { diffChars, Change } from 'diff'
+import ResultBoard, { History } from '../ResultBoard'
 
 const wordSize = 5
 
-type Props = {
+type TypingBoardProps = {
     sourceText: string,
     timerInSecs?: number
 }
 
 type State = {
     input: string,
-    accuracy: number,
+    progress: number,
     wordsPerMinute: number,
     isRunning: boolean,
     firstStroke?: Date,
-    remainingSeconds: number
+    remainingSeconds: number,
+    changes: Change[],
+    history: History
 }
 
-export default class TypingBoard extends Component<Props, State> {
+export default class TypingBoard extends Component<TypingBoardProps, State> {
 
     private timer?: NodeJS.Timeout
     private tick?: NodeJS.Timeout
 
-    constructor(props: Props) {
+    constructor(props: TypingBoardProps) {
         super(props)
         this.state = {
             input: '',
-            accuracy: 0,
+            progress: 0,
             wordsPerMinute: 0,
             firstStroke: undefined,
             remainingSeconds: 0,
-            isRunning: true
+            isRunning: true,
+            changes: diffChars(this.props.sourceText, ''),
+            history: []
         }
     }
 
     componentWillUnmount() {
+        this.clearTimers()
+    }
+    
+    private clearTimers() {
         if (this.timer) {
             clearTimeout(this.timer)
         }
@@ -44,22 +53,52 @@ export default class TypingBoard extends Component<Props, State> {
             clearInterval(this.tick)
         }
     }
+    
+    private getInputEventChar(event: Event) {
+        if (event instanceof InputEvent) {
+            if (event.data) {
+                return event.data
+            }
+            if (event.inputType === 'deleteContentBackward') {
+                return '\x7F'
+            }
+        }
+    }
 
     private isValidWpm(wordsPerMinute: number) {
         return wordsPerMinute && Number.isFinite(wordsPerMinute)
     }
 
-    private setInput(input: string) {
+    private setInput(event: ChangeEvent<HTMLTextAreaElement>) {
+        const input = event.target.value
         if (!this.state.firstStroke && this.props.timerInSecs) {
             this.initializeTimer(this.props.timerInSecs)
             this.initializeTick()
         }
-
         const firstStroke = this.state.firstStroke ?? new Date()
-        const elapsedTime = differenceInSeconds(new Date(), firstStroke)
+        const elapsedTime = differenceInMilliseconds(new Date(), firstStroke)
         const inputSize = input.length
-        const wordsPerMinute = (inputSize / wordSize) / (elapsedTime / 60)
-        this.setState({ ...this.state, firstStroke, wordsPerMinute, input })
+        const wordsPerMinute = (inputSize / wordSize) / (elapsedTime / 1000 / 60)
+        const { progress, changes } = this.getProgress(input)
+        const isRunning = progress !== 100
+        if (!isRunning) {
+            this.clearTimers()
+        }
+        this.setState({
+            ...this.state,
+            isRunning,
+            progress,
+            changes,
+            wordsPerMinute,
+            firstStroke,
+            input,
+            history: [...this.state.history, {
+                wordsPerMinute,
+                progress,
+                time: new Date(),
+                char: this.getInputEventChar(event.nativeEvent)
+            }]
+        })
     }
 
     private initializeTimer(secs: number) {
@@ -92,8 +131,8 @@ export default class TypingBoard extends Component<Props, State> {
         event.preventDefault()
     }
 
-    private getAccuracy() {
-        const changes = diffChars(this.props.sourceText, this.state.input)
+    private getProgress(input: string) {
+        const changes = diffChars(this.props.sourceText, input)
         const correctChars = changes
             .reduce(
                 (correctChars, change) => {
@@ -105,39 +144,52 @@ export default class TypingBoard extends Component<Props, State> {
                         return correctChars
                     }
                     return correctChars + count
-                }, 
+                },
                 0
             )
         return {
             changes,
-            accuracy: Math.max(correctChars, 0)
+            progress: Math.max(correctChars, 0)
                 / this.props.sourceText.length * 100
         }
     }
 
     render() {
-        const { input, wordsPerMinute, remainingSeconds } = this.state
-        const { changes, accuracy } = this.getAccuracy()
+        const {
+            input,
+            wordsPerMinute,
+            remainingSeconds,
+            firstStroke,
+            changes,
+            progress,
+            isRunning
+        } = this.state
 
         return (
             <div>
-                <TextDiff sourceText={this.props.sourceText} changes={changes}/>
+                <TextDiff changes={changes}/>
                 <textarea
                     value={input}
-                    onChange={event => this.setInput(event.target.value)}
+                    onChange={this.setInput.bind(this)}
                     disabled={!this.state.isRunning}
                     onPaste={this.onPaste.bind(this)}
                     onDrop={this.onPaste.bind(this)}
                 />
-                <p>
+                {firstStroke && <p>
                     WPM: {this.isValidWpm(wordsPerMinute)
                         ? wordsPerMinute
                         : '--'}
+                    {this.props.timerInSecs && <>
+                        <br/>
+                        Remaining time: {remainingSeconds}
+                    </>}
                     <br/>
-                    Remaining time: {remainingSeconds}
-                    <br/>
-                    Accuracy: {accuracy}
-                </p>
+                    Progress: {progress}%
+                </p>}
+                {this.state.firstStroke && <ResultBoard 
+                    history={this.state.history}
+                    firstStroke={this.state.firstStroke}
+                />}
             </div>
         )
     }
