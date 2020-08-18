@@ -1,10 +1,11 @@
-import TypingBoard from '../components/TypingBoard'
 
 export default function Index() {
     return <main className="container">
-        <TypingBoard 
-            sourceText="Lorem ipsum dolor sit amet, consectetur adipiscing elit." 
-            // timerInSecs={500}
-        />
+        <h1>Hello!</h1>
+        <p>
+            With this application, you can measure how fast you type in 
+            WPM <em>(words per minute)</em> units.
+        </p>
+        <a href="./typing">Try it out!</a>
     </main>;
 }

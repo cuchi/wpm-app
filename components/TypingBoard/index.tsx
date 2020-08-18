@@ -6,9 +6,10 @@ import ResultBoard, { History } from '../ResultBoard'
 
 const wordSize = 5
 
-type TypingBoardProps = {
+export type TypingBoardProps = {
     sourceText: string,
-    timerInSecs?: number
+    timerInSecs?: number,
+    onExit?: () => void
 }
 
 type State = {
@@ -53,17 +54,6 @@ export default class TypingBoard extends Component<TypingBoardProps, State> {
             clearInterval(this.tick)
         }
     }
-    
-    private getInputEventChar(event: Event) {
-        if (event instanceof InputEvent) {
-            if (event.data) {
-                return event.data
-            }
-            if (event.inputType === 'deleteContentBackward') {
-                return '\x7F'
-            }
-        }
-    }
 
     private isValidWpm(wordsPerMinute: number) {
         return wordsPerMinute && Number.isFinite(wordsPerMinute)
@@ -96,7 +86,6 @@ export default class TypingBoard extends Component<TypingBoardProps, State> {
                 wordsPerMinute,
                 progress,
                 time: new Date(),
-                char: this.getInputEventChar(event.nativeEvent)
             }]
         })
     }
@@ -186,10 +175,19 @@ export default class TypingBoard extends Component<TypingBoardProps, State> {
                     <br/>
                     Progress: {progress}%
                 </p>}
-                {this.state.firstStroke && <ResultBoard 
+                {firstStroke && !isRunning && <ResultBoard 
                     history={this.state.history}
-                    firstStroke={this.state.firstStroke}
+                    firstStroke={firstStroke}
                 />}
+                {this.props.onExit &&
+                    <button
+                        type="button"
+                        className="pure-button pure-button-primary"
+                        onClick={this.props.onExit}
+                    >
+                        Exit
+                    </button>
+                }
             </div>
         )
     }

@@ -6,7 +6,6 @@ export type History = Array<{
     wordsPerMinute: number,
     progress: number,
     time: Date,
-    char?: string,
 }>
 
 export type ResultBoardProps = {
@@ -106,7 +105,7 @@ export default function ResultBoard(props: ResultBoardProps) {
                 pointBorderWidth={2}
                 pointBorderColor={{ from: 'serieColor' }}
                 useMesh={true}
-                xFormat={(x) => `${x} seconds elapsed after the first keystroke`}
+                yFormat={x => Number(x).toFixed(2)}
                 enableSlices="x"
                 legends={[
                     {
