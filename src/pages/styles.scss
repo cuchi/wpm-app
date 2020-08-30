@@ -12,4 +12,17 @@ textarea {
     width: 720px;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 2em;
+}
+
+form {
+    hr {
+        opacity: 0.2;
+    }
+}
+
+fieldset {
+    .error {
+        color: red;
+    }
 }

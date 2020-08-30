@@ -1,7 +1,8 @@
 import TypingBoard, { TypingBoardProps } from "../components/TypingBoard"
-import TypingConfiguration from "../components/TypingConfiguration"
+import TypingSettings from "../components/TypingSettings"
 import React, { useState } from "react"
 import "./styles.scss"
+import { Helmet } from "react-helmet"
 
 type State = {
   typingBoardProps?: TypingBoardProps
@@ -17,8 +18,12 @@ export default function Typing() {
 
   return (
     <main className="container">
+      <Helmet>
+        <meta charSet="utf-8" />
+        <title>WPM App</title>
+      </Helmet>
       {!typingBoardProps && (
-        <TypingConfiguration
+        <TypingSettings
           onStart={({ text, timerEnabled, timeInSeconds }) =>
             setState({
               typingBoardProps: {

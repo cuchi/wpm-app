@@ -110,10 +110,8 @@ export default function ResultBoard(props: ResultBoardProps) {
             legendPosition: "middle",
           }}
           colors={{ scheme: "category10" }}
-          pointSize={2}
-          pointColor={{ theme: "background" }}
-          pointBorderWidth={2}
-          pointBorderColor={{ from: "serieColor" }}
+          enablePoints={false}
+          enableGridX={false}
           useMesh={true}
           yFormat={x => Number(x).toFixed(2)}
           enableSlices="x"

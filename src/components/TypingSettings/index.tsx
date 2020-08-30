@@ -1,23 +1,66 @@
 import React, { useState } from "react"
 
-type TypingConfigurationState = {
+type TypingSettingsState = {
   timerEnabled: boolean
   timeInSeconds: number
   text: string
+  paragraphs: string[]
+  textError?: string
+  textInfo?: string
 }
 
 type TypingConfigurationProps = {
-  onStart: (state: TypingConfigurationState) => void
+  onStart: (state: TypingSettingsState) => void
 }
 
-export default function TypingConfiguration(props: TypingConfigurationProps) {
+function getTextInfo(paragraphs: string[]) {
+  const realTextLength = paragraphs.join("").length
+
+  return `${paragraphs.length} paragraph(s), ${realTextLength} character(s)`
+}
+
+export default function TypingSettings(props: TypingConfigurationProps) {
   const { onStart } = props
-  const [state, setState] = useState<TypingConfigurationState>({
+  const [state, setState] = useState<TypingSettingsState>({
     timerEnabled: false,
     timeInSeconds: 120,
+    paragraphs: [],
     text: "",
   })
-  const { timerEnabled, timeInSeconds, text } = state
+  const {
+    timerEnabled,
+    timeInSeconds,
+    text,
+    textError,
+    textInfo,
+    paragraphs,
+  } = state
+
+  function start() {
+    if (!state.text) {
+      return setState({
+        ...state,
+        textError: "At least one paragraph of text is required!",
+      })
+    }
+    onStart(state)
+  }
+
+  function updateText(event: React.ChangeEvent<HTMLTextAreaElement>) {
+    const text = event.target.value
+    if (!text) {
+      return setState({ ...state, text, textInfo: undefined })
+    }
+
+    const paragraphs = text
+      .split("\n")
+      .map(paragraph => paragraph.trim())
+      .filter(paragraph => paragraph !== "")
+
+    const textInfo = getTextInfo(paragraphs)
+
+    setState({ ...state, text, textError: undefined, textInfo })
+  }
 
   return (
     <form className="pure-form pure-form-stacked">
@@ -29,11 +72,13 @@ export default function TypingConfiguration(props: TypingConfigurationProps) {
         <textarea
           id="text"
           value={text}
+          style={{ height: "10em" }}
           placeholder="Text to be typed..."
-          onChange={event => {
-            setState({ ...state, text: event.target.value })
-          }}
+          onChange={updateText}
         />
+        {textInfo && <span className="pure-form-message">{textInfo}</span>}
+        {textError && <span className="pure-form-message error">{textError}</span>}
+        <hr />
         <label htmlFor="timer-enabled" className="pure-checkbox">
           <input
             type="checkbox"
@@ -65,13 +110,12 @@ export default function TypingConfiguration(props: TypingConfigurationProps) {
             />
           </>
         )}
+        <hr />
         <button
           type="button"
           className="pure-button pure-button-primary"
-          style={{
-            float: "right",
-          }}
-          onClick={() => onStart(state)}
+          style={{ float: "right" }}
+          onClick={start}
         >
           Start
         </button>
