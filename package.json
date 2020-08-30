@@ -1,25 +1,38 @@
 {
-  "name": "wpm-app",
+  "name": "gatsby-starter-hello-world",
+  "private": true,
+  "description": "A simplified bare-bones starter for Gatsby",
   "version": "0.1.0",
-  "main": "index.js",
-  "license": "MIT",
+  "license": "0BSD",
   "scripts": {
-    "start": "next"
+    "build": "gatsby build",
+    "develop": "gatsby develop",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "start": "npm run develop",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean",
+    "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
   },
   "dependencies": {
     "@nivo/line": "^0.62.0",
     "@types/diff": "^4.0.2",
-    "date-fns": "^2.15.0",
+    "@types/node": "^14.6.2",
     "diff": "^4.0.2",
-    "next": "^9.4.4",
+    "gatsby": "^2.24.50",
+    "gatsby-plugin-sass": "^2.3.12",
+    "node-sass": "^4.14.1",
     "purecss": "^2.0.3",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "sass": "^1.26.10"
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0"
   },
   "devDependencies": {
-    "@types/node": "^14.0.26",
-    "@types/react": "^16.9.43",
-    "typescript": "^3.9.7"
+    "prettier": "2.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gatsbyjs/gatsby-starter-hello-world"
+  },
+  "bugs": {
+    "url": "https://github.com/gatsbyjs/gatsby/issues"
   }
 }
