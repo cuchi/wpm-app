@@ -30,19 +30,20 @@ type State = {
 export default class TypingBoard extends Component<TypingBoardProps, State> {
   private timer?: NodeJS.Timeout
   private tick?: NodeJS.Timeout
+  private initialState = {
+    input: "",
+    progress: 0,
+    wordsPerMinute: 0,
+    firstStroke: undefined,
+    remainingSeconds: 0,
+    isRunning: true,
+    changes: diffChars(this.props.sourceText, ""),
+    history: [],
+  }
 
   constructor(props: TypingBoardProps) {
     super(props)
-    this.state = {
-      input: "",
-      progress: 0,
-      wordsPerMinute: 0,
-      firstStroke: undefined,
-      remainingSeconds: 0,
-      isRunning: true,
-      changes: diffChars(this.props.sourceText, ""),
-      history: [],
-    }
+    this.state = this.initialState
   }
 
   componentWillUnmount() {
@@ -122,6 +123,11 @@ export default class TypingBoard extends Component<TypingBoardProps, State> {
     }, 500)
   }
 
+  private restart() {
+    this.clearTimers()
+    this.setState(this.initialState)
+  }
+
   private onPaste(event: SyntheticEvent) {
     event.preventDefault()
   }
@@ -191,6 +197,14 @@ export default class TypingBoard extends Component<TypingBoardProps, State> {
             Exit
           </button>
         )}
+        <button
+            type="button"
+            className="pure-button pure-button-primary"
+            style={{ marginLeft: '0.5em' }}
+            onClick={() => this.restart()}
+          >
+            Restart
+          </button>
       </div>
     )
   }
